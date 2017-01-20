@@ -5,7 +5,7 @@
 #include <errno.h>
 #include "rotoscope.h"
 
-static const char* evflag2name(rb_event_flag_t evflag) {
+static inline const char* evflag2name(rb_event_flag_t evflag) {
   switch(evflag) {
     case RUBY_EVENT_CALL:
       return "call";
@@ -20,7 +20,7 @@ static const char* evflag2name(rb_event_flag_t evflag) {
   }
 }
 
-static char* class2str(VALUE klass) {
+static inline char* class2str(VALUE klass) {
   VALUE cached_lookup = rb_class_path_cached(klass);
   if (NIL_P(cached_lookup)) return RSTRING_PTR(rb_class_name(klass));
   else return RSTRING_PTR(cached_lookup);
