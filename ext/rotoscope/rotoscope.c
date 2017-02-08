@@ -7,6 +7,8 @@
 #include "rotoscope.h"
 #include "zlib.h"
 
+VALUE cRotoscope;
+
 static int write_csv_header(gzFile* log) {
   return gzprintf(*log, RS_CSV_HEADER);
 }
@@ -40,7 +42,8 @@ static char* class2str(VALUE klass) {
   VALUE cached_lookup = rb_class_path_cached(klass);
   if (NIL_P(cached_lookup)) {
     // most likely a singleton/anonymous class
-    return RSTRING_PTR(rb_any_to_s(klass));
+    return RSTRING_PTR(rb_funcall(cRotoscope, rb_intern("inspect"), 1, klass));
+    // return RSTRING_PTR(rb_any_to_s(klass));
   }
   return RSTRING_PTR(cached_lookup);
 }
@@ -102,17 +105,20 @@ static void event_hook(VALUE tpval, void *data) {
   gzprintf(config->log, RS_CSV_FORMAT, RS_CSV_VALUES(trace));
 }
 
+static void close_gz_handle(Rotoscope* config) {
+  if (config->log) {
+    gzclose(config->log);
+    config->log = NULL;
+  }
+}
+
 static void rs_gc_mark(Rotoscope* config) {
   rb_gc_mark(config->tracepoint);
   rb_gc_mark(config->blacklist);
 }
 
 void rs_dealloc(Rotoscope* config) {
-  if (config->log) {
-    gzclose(config->log);
-    config->log = NULL;
-  }
-
+  close_gz_handle(config);
   free(config);
 }
 
@@ -169,6 +175,11 @@ VALUE rotoscope_mark(VALUE self) {
   gzprintf(config->log, "---\n");
   return Qnil;
 }
+VALUE rotoscope_close(VALUE self) {
+  Rotoscope* config = get_config(self);
+  close_gz_handle(config);
+  return Qnil;
+}
 
 VALUE rotoscope_trace(VALUE self) {
   rotoscope_start_trace(self);
@@ -176,11 +187,12 @@ VALUE rotoscope_trace(VALUE self) {
 }
 
 void Init_rotoscope(void) {
-  VALUE cRotoscope = rb_define_class("Rotoscope", rb_cObject);
+  cRotoscope = rb_define_class("Rotoscope", rb_cObject);
   rb_define_alloc_func(cRotoscope, rs_alloc);
   rb_define_method(cRotoscope, "initialize", initialize, -1);
   rb_define_method(cRotoscope, "trace", (VALUE(*)(ANYARGS))rotoscope_trace, 0);
   rb_define_method(cRotoscope, "mark", (VALUE(*)(ANYARGS))rotoscope_mark, 0);
+  rb_define_method(cRotoscope, "close", (VALUE(*)(ANYARGS))rotoscope_close, 0);
   rb_define_method(cRotoscope, "start_trace", (VALUE(*)(ANYARGS))rotoscope_start_trace, 0);
   rb_define_method(cRotoscope, "stop_trace", (VALUE(*)(ANYARGS))rotoscope_stop_trace, 0);
 }
