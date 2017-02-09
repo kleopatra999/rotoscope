@@ -8,7 +8,7 @@
 #define RS_CSV_HEADER "event,entity,method_name,method_level,filepath,lineno\n"
 #define RS_CSV_FORMAT "%s,\"%s\",\"%s\",%s,\"%s\",%d\n"
 
-#define CLASS_METHOD "class"
+#define CLASS_METHOD "singleton"
 #define INSTANCE_METHOD "instance"
 
 typedef struct {
@@ -32,6 +32,6 @@ typedef struct {
 typedef struct {
   const char* name;
   const char* method_level;
-} rs_class_desc;
+} rs_class_desc_t;
 
 #endif

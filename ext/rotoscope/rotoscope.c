@@ -38,19 +38,21 @@ static bool rejected_path(const char* path, Rotoscope* config) {
   return false;
 }
 
+static rs_class_desc_t class2str(VALUE klass);
+
 static char* singleton2str(VALUE klass) {
   VALUE obj = rb_iv_get(klass, "__attached__");
   if (RB_TYPE_P(obj, T_MODULE) || RB_TYPE_P(obj, T_CLASS)) {
     VALUE cached_lookup = rb_class_path_cached(obj);
     VALUE name = (NIL_P(cached_lookup)) ? rb_class_name(obj) : cached_lookup;
     return RSTRING_PTR(name);
+  } else {
+    return class2str(rb_ary_entry(rb_mod_ancestors(klass), 1)).name;
   }
-
-  return RSTRING_PTR(rb_any_to_s(klass));
 }
 
-static rs_class_desc class2str(VALUE klass) {
-  rs_class_desc real_class;
+static rs_class_desc_t class2str(VALUE klass) {
+  rs_class_desc_t real_class;
   real_class.method_level = INSTANCE_METHOD;
 
   VALUE cached_lookup = rb_class_path_cached(klass);
@@ -73,7 +75,7 @@ static const char* tracearg_path(rb_trace_arg_t *trace_arg) {
   return RTEST(path) ? RSTRING_PTR(path) : "";
 }
 
-static rs_class_desc tracearg_class(rb_trace_arg_t *trace_arg) {
+static rs_class_desc_t tracearg_class(rb_trace_arg_t *trace_arg) {
   VALUE klass;
   VALUE self = rb_tracearg_self(trace_arg);
 
@@ -87,7 +89,7 @@ static rs_class_desc tracearg_class(rb_trace_arg_t *trace_arg) {
 }
 
 static rs_tracepoint_t extract_full_tracevals(rb_trace_arg_t* trace_arg) {
-  rs_class_desc method_owner = tracearg_class(trace_arg);
+  rs_class_desc_t method_owner = tracearg_class(trace_arg);
 
   return (rs_tracepoint_t) {
     .event = evflag2name(rb_tracearg_event_flag(trace_arg)),
