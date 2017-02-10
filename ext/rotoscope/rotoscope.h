@@ -1,8 +1,8 @@
 #ifndef _INC_ROTOSCOPE_H_
 #define _INC_ROTOSCOPE_H_
 
-#define EVENT_CALL (RUBY_EVENT_CALL | RUBY_EVENT_C_CALL)
-#define EVENT_RETURN (RUBY_EVENT_RETURN | RUBY_EVENT_C_RETURN)
+#define EVENT_CALL RUBY_EVENT_CALL
+#define EVENT_RETURN RUBY_EVENT_RETURN
 
 #define RS_CSV_VALUES(trace) trace.event, trace.entity, trace.method_name, trace.method_level, trace.filepath, trace.lineno
 #define RS_CSV_HEADER "event,entity,method_name,method_level,filepath,lineno\n"

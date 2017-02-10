@@ -38,16 +38,12 @@ class RotoscopeTest < MiniTest::Test
   end
 
   def teardown
-    # FileUtils.remove_file(@logfile)
+    FileUtils.remove_file(@logfile)
   end
 
   def test_instance_method
     contents = rotoscope_trace { Example.new.normal_method }
     assert_equal [
-      { event: "call", entity: "Example", method_name: "new", method_level: "singleton", filepath: "/rotoscope_test.rb", lineno: -1 },
-      { event: "call", entity: "Example", method_name: "initialize", method_level: "instance", filepath: "/rotoscope_test.rb", lineno: -1 },
-      { event: "return", entity: "Example", method_name: "initialize", method_level: "instance", filepath: "/rotoscope_test.rb", lineno: -1 },
-      { event: "return", entity: "Example", method_name: "new", method_level: "singleton", filepath: "/rotoscope_test.rb", lineno: -1 },
       { event: "call", entity: "Example", method_name: "normal_method", method_level: "instance", filepath: "/rotoscope_test.rb", lineno: -1 },
       { event: "return", entity: "Example", method_name: "normal_method", method_level: "instance", filepath: "/rotoscope_test.rb", lineno: -1 }
     ], parse_and_normalize(contents)
@@ -73,12 +69,6 @@ class RotoscopeTest < MiniTest::Test
   def test_formats_singletons_of_an_instance
     contents = rotoscope_trace { Example.new.singleton_class.singleton_method }
     assert_equal [
-      { event: "call", entity: "Example", method_name: "new", method_level: "singleton", filepath: "/rotoscope_test.rb", lineno: -1 },
-      { event: "call", entity: "Example", method_name: "initialize", method_level: "instance", filepath: "/rotoscope_test.rb", lineno: -1 },
-      { event: "return", entity: "Example", method_name: "initialize", method_level: "instance", filepath: "/rotoscope_test.rb", lineno: -1 },
-      { event: "return", entity: "Example", method_name: "new", method_level: "singleton", filepath: "/rotoscope_test.rb", lineno: -1 },
-      { event: "call", entity: "Example", method_name: "singleton_class", method_level: "instance", filepath: "/rotoscope_test.rb", lineno: -1 },
-      { event: "return", entity: "Example", method_name: "singleton_class", method_level: "singleton", filepath: "/rotoscope_test.rb", lineno: -1 },
       { event: "call", entity: "Example", method_name: "singleton_method", method_level: "singleton", filepath: "/rotoscope_test.rb", lineno: -1 },
       { event: "return", entity: "Example", method_name: "singleton_method", method_level: "singleton", filepath: "/rotoscope_test.rb", lineno: -1 },
     ], parse_and_normalize(contents)
