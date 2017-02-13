@@ -191,23 +191,28 @@ VALUE initialize(int argc, VALUE *argv, VALUE self)
 {
   Rotoscope *config = get_config(self);
   VALUE output_path;
+  VALUE mode;
 
-  rb_scan_args(argc, argv, "11", &output_path, &config->blacklist);
+  rb_scan_args(argc, argv, "12", &output_path, &config->blacklist, &mode);
   if (NIL_P(config->blacklist))
     config->blacklist = rb_ary_new();
   Check_Type(config->blacklist, T_ARRAY);
   config->blacklist_size = RARRAY_LEN(config->blacklist);
 
+  if (NIL_P(mode))
+    mode = rb_str_new_cstr("w");
+  Check_Type(mode, T_STRING);
   Check_Type(output_path, T_STRING);
   const char *path = RSTRING_PTR(output_path);
-  config->log = gzopen(path, "w");
+  config->log = gzopen(path, RSTRING_PTR(mode));
   if (config->log == NULL)
   {
     fprintf(stderr, "\nERROR: Failed to open file handle at %s (%s)\n", path, strerror(errno));
     exit(1);
   }
 
-  write_csv_header(&config->log);
+  if (strncmp(RSTRING_PTR(mode), "w", 1))
+    write_csv_header(&config->log);
 
   return self;
 }
