@@ -150,15 +150,21 @@ static void event_hook(VALUE tpval, void *data)
     return;
 
   rs_tracepoint_t trace = extract_full_tracevals(trace_arg);
-  gzprintf(config->log, RS_CSV_FORMAT, RS_CSV_VALUES(trace));
+  int result = gzprintf(config->log, RS_CSV_FORMAT, RS_CSV_VALUES(trace));
+  if (result <= 0)
+    printf("gzprintf: %d\n", result);
 }
 
 static void close_gz_handle(Rotoscope *config)
 {
   if (config->log)
   {
-    gzclose(config->log);
+    puts("CLOSING GZ HANDLE...");
+    int result = gzclose(config->log);
+    printf("gzclose: %d\n", result);
     config->log = NULL;
+  } else {
+    puts("GZ HANDLE ALREADY NULL, NOT CLOSING!");
   }
 }
 
